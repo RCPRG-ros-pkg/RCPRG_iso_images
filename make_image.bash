@@ -6,12 +6,12 @@
 # Parameters - adjust for your needs
 ROOT_DIR="$HOME/live-ubuntu-from-scratch"
 BUILD_NAME=STERO
-BUILD_DATE=20201005
-BUILD_NUM=3
+BUILD_DATE=20201006
+BUILD_NUM=1
 
 # Useful variables
 OUTPUT_IMAGE_NAME="ubuntu-18-04-${BUILD_DATE}${BUILD_NUM}.img"
-SPLIT_SIZE_MB=250
+SPLIT_SIZE_MB=500
 UNIQUE_FILE="ubuntu_${BUILD_NAME}_${BUILD_DATE}${BUILD_NUM}"
 DISK_NAME="Ubuntu 18.04-${BUILD_NAME}-${BUILD_DATE}_${BUILD_NUM}"
 
@@ -189,4 +189,5 @@ sudo xorriso \
 
 # Compress and split, if needed
 cd "$ROOT_DIR"
-zip -s "${SPLIT_SIZE_MB}m" "$OUTPUT_IMAGE_NAME.zip" "$OUTPUT_IMAGE_NAME"
+#zip -s "${SPLIT_SIZE_MB}m" "$OUTPUT_IMAGE_NAME.zip" "$OUTPUT_IMAGE_NAME"
+7z "-v${SPLIT_SIZE_MB}m" a "$OUTPUT_IMAGE_NAME.7z" "$OUTPUT_IMAGE_NAME"
