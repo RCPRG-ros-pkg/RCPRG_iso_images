@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
-# This script is based on:
-# https://itnext.io/how-to-create-a-custom-ubuntu-live-from-scratch-dd3b3f213f81
+# This script requires:
+# https://github.com/Tomas-M/linux-live.git
 
 # Parameters - adjust for your needs
 ROOT_DIR="$HOME"/live-ubuntu-from-scratch
 BUILD_NAME=STERO
 BUILD_DATE=20201007
 BUILD_NUM=4
+# Path to https://github.com/Tomas-M/linux-live.git:
 LINUX_LIVE_PACKAGE_DIR="$HOME"/code/linux-live
 KERNEL="4.15.0-118-generic"
 
