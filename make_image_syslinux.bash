@@ -84,7 +84,8 @@ mkdir -p image/{isolinux,boot}
 
 # Copy some stuff
 sudo cp chroot/boot/vmlinuz-**-**-generic image/boot/vmlinuz
-sudo chown dseredyn:dseredyn image/boot/vmlinuz
+USERNAME=$(whoami)
+sudo chown $USERNAME:$USERNAME image/boot/vmlinuz
 
 mkdir -p image/boot/syslinux
 mkdir -p image/"${LIVEKITNAME}"
