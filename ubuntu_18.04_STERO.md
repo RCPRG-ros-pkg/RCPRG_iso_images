@@ -126,6 +126,11 @@ apt-get install -y \
     locales \
     linux-generic
 ```
+Create user:
+```bash
+useradd -s /bin/bash -d /home/student -m -G sudo student
+passwd student
+```
 
 ## Cleanup after stage 3
 After this stage cleanup is the same as after stage 2.
@@ -284,4 +289,14 @@ exit
 ```bash
 sudo umount $HOME/live-ubuntu-from-scratch/chroot/dev
 sudo umount $HOME/live-ubuntu-from-scratch/chroot/run
+```
+
+# Troubleshooting
+
+## Network in chroot does not work
+
+Copy resolv.conf from the host:
+```bash
+sudo rm ~/live-ubuntu-from-scratch/chroot/etc/resolv.conf 
+sudo cp /etc/resolv.conf ~/live-ubuntu-from-scratch/chroot/etc/
 ```
