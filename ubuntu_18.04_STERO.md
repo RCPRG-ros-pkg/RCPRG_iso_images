@@ -35,9 +35,12 @@ After this stage cleanup is not required.
 
 # STAGE 2
 
-Mount dev and run:
+Mount dev:
 ```bash
 sudo mount --bind /dev $HOME/live-ubuntu-from-scratch/chroot/dev
+```
+Mount run:
+```bash
 sudo mount --bind /run $HOME/live-ubuntu-from-scratch/chroot/run
 ```
 
