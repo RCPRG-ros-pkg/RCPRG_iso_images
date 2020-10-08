@@ -3,6 +3,20 @@
 Based on:
 https://itnext.io/how-to-create-a-custom-ubuntu-live-from-scratch-dd3b3f213f81
 
+# Required packages
+
+Install packages:
+```bash
+sudo apt-get install \
+    binutils \
+    debootstrap \
+    squashfs-tools \
+    xorriso \
+    grub-pc-bin \
+    grub-efi-amd64-bin \
+    mtools
+```
+
 # STAGE 1
 
 Create a new root filesystem and populate it with minimum required files and folders:
