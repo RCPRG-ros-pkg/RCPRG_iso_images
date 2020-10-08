@@ -143,6 +143,8 @@ apt-get install -y \
     locales \
     linux-generic
 ```
+Configure grub: Don’t select any options, Only confirm "Yes".
+
 Create user:
 ```bash
 useradd -s /bin/bash -d /home/student -m -G sudo student
