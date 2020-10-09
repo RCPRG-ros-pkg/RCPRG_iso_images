@@ -6,11 +6,15 @@
 # Parameters - adjust for your needs
 ROOT_DIR="$HOME"/live-ubuntu-from-scratch
 BUILD_NAME=STERO
-BUILD_DATE=20201007
-BUILD_NUM=4
+BUILD_DATE=20201008
+BUILD_NUM=2
 # Path to https://github.com/Tomas-M/linux-live.git:
 LINUX_LIVE_PACKAGE_DIR="$HOME"/code/linux-live
 KERNEL="4.15.0-118-generic"
+
+#SKIP_INITRAMFS_BUILD=true
+#SKIP_SQUASHFS_BUILD=true
+
 
 # Write config for linux-live
 cat <<EOF > "${LINUX_LIVE_PACKAGE_DIR}/config"
@@ -107,7 +111,9 @@ sudo sed -i '/laptop-detect/d' "${FILESYSTEM_DIR}"/filesystem.manifest-desktop
 sudo sed -i '/os-prober/d' "${FILESYSTEM_DIR}"/filesystem.manifest-desktop
 
 # Create squashfs
-sudo mksquashfs chroot "${FILESYSTEM_DIR}"/filesystem.squashfs
+if [ -z "$SKIP_SQUASHFS_BUILD" ]; then
+  sudo mksquashfs chroot "${FILESYSTEM_DIR}"/filesystem.squashfs
+fi
 
 # Write filesystem size before compression
 printf $(sudo du -sx --block-size=1 chroot | cut -f1) > "${FILESYSTEM_DIR}"/filesystem.size
@@ -154,20 +160,22 @@ cp $BOOTFILES_DIR/EFI/Boot/{ldlinux.e64,menu.c32,libutil.c32,vesamenu.c32,libcom
 cp boot/syslinux/syslinux.cfg boot/EFI/Boot/syslinux.cfg
 
 # Build initramfs image
-echo "Building intramfs image..."
-cd $LINUX_LIVE_PACKAGE_DIR/initramfs
-INITRAMFS=$(./initramfs_create)
-cd "$ROOT_DIR/image"
-
-if [ "$INITRAMFS" != "" ]; then
-   mv "$INITRAMFS" boot/initrfs.img
+if [ -z "$SKIP_INITRAMFS_BUILD" ]; then
+  echo "Building intramfs image..."
+  cd $LINUX_LIVE_PACKAGE_DIR/initramfs
+  INITRAMFS=$(./initramfs_create)
+  cd "$ROOT_DIR/image"
+  if [ "$INITRAMFS" != "" ]; then
+     mv "$INITRAMFS" boot/initrfs.img
+  fi
 fi
+
 
 # Generate md5sum.txt
 sudo /bin/bash -c "(find . -type f -print0 | xargs -0 md5sum | grep -v "\./md5sum.txt" > md5sum.txt)"
 
 # This command creates a valid, bootable image for CD and it cannot be used in USB (no MBR):
-#mkisofs -o "../$OUTPUT_IMAGE_NAME" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
+#mkisofs -o "../$OUTPUT_IMAGE_NAME.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
 #-no-emul-boot -boot-info-table -boot-load-size 4 \
 #-b boot/isolinux.bin -c boot/isolinux.boot .
 
@@ -187,7 +195,15 @@ xorriso -as mkisofs \
   -o "../$OUTPUT_IMAGE_NAME" \
   .
 
+
 # Compress and split, if needed
 cd "$ROOT_DIR"
+
+#FAT_SIZE=2500000
+#dd if=/dev/zero of=fat.fs bs=1024 count=$FAT_SIZE
+#mkfs.vfat fat.fs
+
+# mount -o loop  fat.fs /mnt
+
 #zip -s "${SPLIT_SIZE_MB}m" "$OUTPUT_IMAGE_NAME.zip" "$OUTPUT_IMAGE_NAME"
 #7z "-v${SPLIT_SIZE_MB}m" a "$OUTPUT_IMAGE_NAME.7z" "$OUTPUT_IMAGE_NAME"
