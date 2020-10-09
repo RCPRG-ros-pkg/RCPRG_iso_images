@@ -322,5 +322,5 @@ sudo cp /etc/resolv.conf ~/live-ubuntu-from-scratch/chroot/etc/
 Then, after you finish your work, you have to cleanup resolv.conf:
 ```bash
 cd /etc
-nl -s -T ../run/systemd/resolve/stub-resolv.conf resolv.conf
+ln -s -T ../run/systemd/resolve/stub-resolv.conf resolv.conf
 ```
