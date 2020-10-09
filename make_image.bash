@@ -6,14 +6,58 @@
 # Parameters - adjust for your needs
 ROOT_DIR="$HOME/live-ubuntu-from-scratch"
 BUILD_NAME=STERO
-BUILD_DATE=20201006
+BUILD_DATE=20201009
 BUILD_NUM=1
+# Path to https://github.com/Tomas-M/linux-live.git:
+LINUX_LIVE_PACKAGE_DIR="$HOME"/code/linux-live
+KERNEL="4.15.0-118-generic"
+
+SKIP_INITRAMFS_BUILD=true
+SKIP_SQUASHFS_BUILD=true
 
 # Useful variables
 OUTPUT_IMAGE_NAME="ubuntu-18-04-${BUILD_DATE}${BUILD_NUM}.img"
 SPLIT_SIZE_MB=500
 UNIQUE_FILE="ubuntu_${BUILD_NAME}_${BUILD_DATE}${BUILD_NUM}"
 DISK_NAME="Ubuntu 18.04-${BUILD_NAME}-${BUILD_DATE}_${BUILD_NUM}"
+
+# Write config for linux-live
+cat <<EOF > "${LINUX_LIVE_PACKAGE_DIR}/config"
+LIVEKITNAME="${BUILD_NAME}${BUILD_DATE}${BUILD_NUM}"
+
+# Kernel file, will be copied to your Live Kit
+# Your kernel must support aufs and squashfs. Debian Jessie's kernel is ready
+# out of the box.
+VMLINUZ=/vmlinuz
+
+# Kernel version. Change it to "3.2.28" for example, if you are building
+# Live Kit with a different kernel than the one you are actually running
+KERNEL=${KERNEL}
+
+# List of directories for root filesystem
+# No subdirectories are allowed, no slashes,
+# so You can't use /var/tmp here for example
+# Exclude directories like proc sys tmp
+MKMOD="bin etc home lib lib64 opt root sbin srv usr var"
+
+# If you require network support in initrd, for example to boot over
+# PXE or to load data using 'from' boot parameter from a http server,
+# you will need network modules included in your initrd.
+# This is disabled by default since most people won't need it.
+# To enable, set to true
+NETWORK=false
+
+# Temporary directory to store livekit filesystem
+LIVEKITDATA=/tmp/\$LIVEKITNAME-data-\$\$
+
+# Bundle extension, for example 'sb' for .sb extension
+BEXT=squashfs
+
+# Directory with kernel .ko modules, can be different in some distros
+LMK="lib/modules/\$KERNEL"
+EOF
+
+. ${LINUX_LIVE_PACKAGE_DIR}/config
 
 # Here we assume, the root filesystem is already created
 # in folder $ROOT_DIR/chroot
@@ -38,16 +82,31 @@ sudo mv "$ROOT_DIR/issue" "$ROOT_DIR/chroot/etc/issue"
 
 # Create directories for destination filesystem
 cd "$ROOT_DIR"
-mkdir -p image/{casper,isolinux,install}
+mkdir -p image/{casper,isolinux,install,boot}
 
 # Copy some stuff
 sudo cp chroot/boot/vmlinuz-**-**-generic image/casper/vmlinuz
-sudo cp chroot/boot/initrd.img-**-**-generic image/casper/initrd
+#sudo cp chroot/boot/initrd.img-**-**-generic image/casper/initrd
 
-sudo cp /boot/memtest86+.bin image/install/memtest86
+#sudo cp /boot/memtest86+.bin image/install/memtest86
 wget --progress=dot https://www.memtest86.com/downloads/memtest86-usb.zip -O image/install/memtest86-usb.zip
 unzip -p image/install/memtest86-usb.zip memtest86-usb.img > image/install/memtest86
 rm image/install/memtest86-usb.zip
+
+#exit 0
+
+# Build initramfs image
+if [ -z "$SKIP_INITRAMFS_BUILD" ]; then
+  echo "Building intramfs image..."
+  cd $LINUX_LIVE_PACKAGE_DIR/initramfs
+  INITRAMFS=$(./initramfs_create)
+  cd "$ROOT_DIR/image"
+  if [ "$INITRAMFS" != "" ]; then
+     #mv "$INITRAMFS" boot/initrfs.img
+     mv "$INITRAMFS" casper/initrd
+  fi
+  cd "$ROOT_DIR"
+fi
 
 #cp /usr/lib/ISOLINUX/isolinux.bin image/isolinux/
 #cp /usr/lib/syslinux/modules/bios/ldlinux.c32 image/isolinux/ # for syslinux 5.00 and newer
@@ -56,13 +115,15 @@ rm image/install/memtest86-usb.zip
 # Create base point access file for grub
 # Set some unique name, so that GRUB can find this USB stick among multiple other drives.
 # Later, we search for this file from our GRUB.
-touch image/$UNIQUE_FILE
-touch image/ubuntu
+#touch image/$UNIQUE_FILE
+#touch image/ubuntu
 
 # Write GRUB configuration
 cat <<EOF > image/isolinux/grub.cfg
 
-search --set=root --file /$UNIQUE_FILE
+pager=1
+regexp --set=root \(([^\(\)])+\) \$cmdpath
+regexp --set=TEST_VAR \(([^\(\)])+\) \$cmdpath
 
 insmod all_video
 
@@ -92,17 +153,31 @@ menuentry "Test memory Memtest86 (UEFI, long load time)" {
 }
 EOF
 
+FILESYSTEM_DIR=image/"${LIVEKITNAME}"
+mkdir -p image/"${LIVEKITNAME}"
+
 # Create manifests
-sudo chroot chroot dpkg-query -W --showformat='${Package} ${Version}\n' | sudo tee image/casper/filesystem.manifest
-sudo cp -v image/casper/filesystem.manifest image/casper/filesystem.manifest-desktop
-sudo sed -i '/ubiquity/d' image/casper/filesystem.manifest-desktop
-sudo sed -i '/casper/d' image/casper/filesystem.manifest-desktop
-sudo sed -i '/discover/d' image/casper/filesystem.manifest-desktop
-sudo sed -i '/laptop-detect/d' image/casper/filesystem.manifest-desktop
-sudo sed -i '/os-prober/d' image/casper/filesystem.manifest-desktop
+#sudo chroot chroot dpkg-query -W --showformat='${Package} ${Version}\n' | sudo tee image/casper/filesystem.manifest
+#sudo cp -v image/casper/filesystem.manifest image/casper/filesystem.manifest-desktop
+#sudo sed -i '/ubiquity/d' image/casper/filesystem.manifest-desktop
+#sudo sed -i '/casper/d' image/casper/filesystem.manifest-desktop
+#sudo sed -i '/discover/d' image/casper/filesystem.manifest-desktop
+#sudo sed -i '/laptop-detect/d' image/casper/filesystem.manifest-desktop
+#sudo sed -i '/os-prober/d' image/casper/filesystem.manifest-desktop
+
+sudo chroot chroot dpkg-query -W --showformat='${Package} ${Version}\n' | sudo tee "${FILESYSTEM_DIR}"/filesystem.manifest
+sudo cp -v "${FILESYSTEM_DIR}"/filesystem.manifest "${FILESYSTEM_DIR}"/filesystem.manifest-desktop
+sudo sed -i '/ubiquity/d' "${FILESYSTEM_DIR}"/filesystem.manifest-desktop
+sudo sed -i '/casper/d' "${FILESYSTEM_DIR}"/filesystem.manifest-desktop
+sudo sed -i '/discover/d' "${FILESYSTEM_DIR}"/filesystem.manifest-desktop
+sudo sed -i '/laptop-detect/d' "${FILESYSTEM_DIR}"/filesystem.manifest-desktop
+sudo sed -i '/os-prober/d' "${FILESYSTEM_DIR}"/filesystem.manifest-desktop
 
 # Create squashfs
-sudo mksquashfs chroot image/casper/filesystem.squashfs
+if [ -z "$SKIP_SQUASHFS_BUILD" ]; then
+   #sudo mksquashfs chroot image/casper/filesystem.squashfs
+   sudo mksquashfs chroot "${FILESYSTEM_DIR}"/filesystem.squashfs
+fi
 
 # Write filesystem size before compression
 printf $(sudo du -sx --block-size=1 chroot | cut -f1) > image/casper/filesystem.size
@@ -144,8 +219,8 @@ grub-mkstandalone \
 grub-mkstandalone \
    --format=i386-pc \
    --output=isolinux/core.img \
-   --install-modules="linux16 linux normal iso9660 biosdisk memdisk search tar ls" \
-   --modules="linux16 linux normal iso9660 biosdisk search" \
+   --install-modules="linux16 linux normal iso9660 biosdisk memdisk search tar ls regexp" \
+   --modules="linux16 linux normal iso9660 biosdisk search regexp" \
    --locales="" \
    --fonts="" \
    "boot/grub/grub.cfg=isolinux/grub.cfg"
@@ -190,4 +265,4 @@ sudo xorriso \
 # Compress and split, if needed
 cd "$ROOT_DIR"
 #zip -s "${SPLIT_SIZE_MB}m" "$OUTPUT_IMAGE_NAME.zip" "$OUTPUT_IMAGE_NAME"
-7z "-v${SPLIT_SIZE_MB}m" a "$OUTPUT_IMAGE_NAME.7z" "$OUTPUT_IMAGE_NAME"
+#7z "-v${SPLIT_SIZE_MB}m" a "$OUTPUT_IMAGE_NAME.7z" "$OUTPUT_IMAGE_NAME"
