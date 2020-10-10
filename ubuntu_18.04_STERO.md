@@ -125,7 +125,10 @@ Set diversion:
 dpkg-divert --local --rename --add /sbin/initctl
 ln -s /bin/true /sbin/initctl
 ```
-
+Add line to etc/resolvconf/resolv.conf.d/tail
+```bash
+nameserver 127.0.1.1
+```
 Install required packages: 
 ```bash
 apt-get install -y \
@@ -203,7 +206,7 @@ apt-get install -y \
 
 Install Google Crome:
 ```bash
-wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
 echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
 apt-get update
 apt-get install google-chrome-stable
@@ -211,13 +214,13 @@ apt-get install google-chrome-stable
 
 Install Sublime:
 ```bash
-sudo apt update
-sudo apt install apt-transport-https ca-certificates curl software-properties-common
+apt update
+apt install apt-transport-https ca-certificates curl software-properties-common
 
-curl -fsSL https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
-sudo add-apt-repository "deb https://download.sublimetext.com/ apt/stable/"
-sudo apt update
-sudo apt install sublime-text
+curl -fsSL https://download.sublimetext.com/sublimehq-pub.gpg | apt-key add -
+add-apt-repository "deb https://download.sublimetext.com/ apt/stable/"
+apt update
+apt install sublime-text
 ```
 
 ## Cleanup after stage 4
@@ -230,10 +233,10 @@ Resuming after stage 4 is the same as after stage 3.
 
 Install ROS:
 ```bash
-sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-sudo apt update
-sudo apt install ros-melodic-desktop
+sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+apt update
+apt install ros-melodic-desktop
 ```
 
 ## Cleanup after stage 5
