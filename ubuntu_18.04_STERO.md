@@ -186,12 +186,6 @@ cd ..
 rm -rf RCPRG_rosinstall
 ```
 
-## Cleanup after stage 6
-After this stage cleanup is the same as after stage 3.
-
-## Resuming after stage 6
-Resuming after stage 4 is the same as after stage 3.
-
 # STAGE 7: STERO workspaces
 
 Install workspaces for STERO: copy all workspaces to /opt
