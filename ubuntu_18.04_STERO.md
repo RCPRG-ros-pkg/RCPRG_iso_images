@@ -31,8 +31,6 @@ sudo debootstrap \
     http://us.archive.ubuntu.com/ubuntu/
 ```
 
-After this stage cleanup is not required.
-
 # STAGE 2
 
 Mount dev:
@@ -81,38 +79,6 @@ Install systemd:
 apt-get install -y systemd-sysv
 ```
 
-## Cleanup after stage 2
-After this stage cleanup is:
-```bash
-umount -l /proc
-umount -l /sys
-umount -l /dev/pts
-export HISTSIZE=0
-exit
-```
-and then:
-```bash
-sudo umount -l $HOME/live-ubuntu-from-scratch/chroot/dev
-sudo umount -l  $HOME/live-ubuntu-from-scratch/chroot/run
-```
-
-## Resuming after stage 2
-
-To resume after stage 2 is created:
-```bash
-sudo mount --bind /dev $HOME/live-ubuntu-from-scratch/chroot/dev
-sudo mount --bind /run $HOME/live-ubuntu-from-scratch/chroot/run
-sudo chroot $HOME/live-ubuntu-from-scratch/chroot
-```
-and then:
-```bash
-mount none -t proc /proc
-mount none -t sysfs /sys
-mount none -t devpts /dev/pts
-export HOME=/root
-export LC_ALL=C
-```
-
 # STAGE 3
 
 Set machine uuid:
@@ -154,31 +120,6 @@ useradd -s /bin/bash -d /home/student -m -G sudo student
 passwd student
 ```
 
-## Cleanup after stage 3
-After this stage cleanup is the same as after stage 2.
-
-## Resuming after stage 3
-
-To resume after stage 2 is created:
-```bash
-sudo mount --bind /dev $HOME/live-ubuntu-from-scratch/chroot/dev
-sudo mount --bind /run $HOME/live-ubuntu-from-scratch/chroot/run
-sudo chroot $HOME/live-ubuntu-from-scratch/chroot
-```
-and then:
-```bash
-mount none -t proc /proc
-mount none -t sysfs /sys
-mount none -t devpts /dev/pts
-export HOME=/root
-export LC_ALL=C
-```
-and finally:
-```bash
-ln -fs /etc/machine-id /var/lib/dbus/machine-id
-dpkg-divert --local --rename --add /sbin/initctl
-ln -s /bin/true /sbin/initctl
-```
 
 # STAGE 4: xfce, optional packages
 
@@ -223,11 +164,6 @@ apt update
 apt install sublime-text
 ```
 
-## Cleanup after stage 4
-After this stage cleanup is the same as after stage 3.
-
-## Resuming after stage 4
-Resuming after stage 4 is the same as after stage 3.
 
 # STAGE 5: ROS
 
@@ -238,12 +174,6 @@ apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BAD
 apt update
 apt install ros-melodic-desktop
 ```
-
-## Cleanup after stage 5
-After this stage cleanup is the same as after stage 3.
-
-## Resuming after stage 5
-Resuming after stage 4 is the same as after stage 3.
 
 # STAGE 6: dependencies for STERO workspaces
 
@@ -266,17 +196,14 @@ Resuming after stage 4 is the same as after stage 3.
 
 Install workspaces for STERO: copy all workspaces to /opt
 
-## Cleanup after stage 7
-After this stage cleanup is the same as after stage 3.
-
-## Resuming after stage 7
-Resuming after stage 4 is the same as after stage 3.
-
 # STAGE 8: final cleanup
 
 ```bash
 apt-get autoremove -y
 dpkg-reconfigure locales
+```
+Reconfigure resolvconf
+```bash
 dpkg-reconfigure resolvconf
 ```
 
