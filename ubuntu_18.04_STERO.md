@@ -182,6 +182,9 @@ Install dependencies for STERO workspaces:
 git clone -b melodic-setup-working https://github.com/RCPRG-ros-pkg/RCPRG_rosinstall.git
 cd RCPRG_rosinstall
 scripts/check_deps.sh workspace_defs/main_dependencies
+```
+Remove RCPRG_rosinstall:
+```bash
 cd ..
 rm -rf RCPRG_rosinstall
 ```
