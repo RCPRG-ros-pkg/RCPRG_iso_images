@@ -8,13 +8,14 @@ ROOT_DIR="$HOME"/live-ubuntu-from-scratch
 BUILD_NAME=STERO
 BUILD_DATE=20201008
 BUILD_NUM=2
+SPLIT_SIZE_MB=500
+
 # Path to https://github.com/Tomas-M/linux-live.git:
 LINUX_LIVE_PACKAGE_DIR="$HOME"/code/linux-live
 KERNEL="4.15.0-118-generic"
 
 #SKIP_INITRAMFS_BUILD=true
 #SKIP_SQUASHFS_BUILD=true
-
 
 # Write config for linux-live
 cat <<EOF > "${LINUX_LIVE_PACKAGE_DIR}/config"
@@ -58,7 +59,6 @@ echo "LIVEKITNAME: $LIVEKITNAME"
 
 # Useful variables
 OUTPUT_IMAGE_NAME="ubuntu-18-04-${BUILD_DATE}${BUILD_NUM}.img"
-SPLIT_SIZE_MB=500
 DISK_NAME="Ubuntu 18.04-${BUILD_NAME}-${BUILD_DATE}_${BUILD_NUM}"
 
 # Here we assume, the root filesystem is already created
@@ -70,17 +70,14 @@ if [ ! -d "$ROOT_DIR/chroot/etc" ]; then
 fi
 
 # Add pre-login welcome message (/etc/issue)
-cat <<EOF > "$ROOT_DIR/issue"
-Ubuntu 18.04.5 LTS ${BUILD_NAME} Live build ${BUILD_DATE}${BUILD_NUM}
-
-Username is: student
-Password is: student
-
-To run graphical interface type:
-startx /usr/bin/xfce4-session
-
-EOF
-sudo mv "$ROOT_DIR/issue" "$ROOT_DIR/chroot/etc/issue"
+#cat <<EOF > "$ROOT_DIR/issue"
+#Ubuntu 18.04.5 LTS ${BUILD_NAME} Live build ${BUILD_DATE}${BUILD_NUM}
+#Username is: student
+#Password is: student
+#To run graphical interface type:
+#startx /usr/bin/xfce4-session
+#EOF
+#sudo mv "$ROOT_DIR/issue" "$ROOT_DIR/chroot/etc/issue"
 
 # Create directories for destination filesystem
 cd "$ROOT_DIR"
@@ -169,7 +166,6 @@ if [ -z "$SKIP_INITRAMFS_BUILD" ]; then
      mv "$INITRAMFS" boot/initrfs.img
   fi
 fi
-
 
 # Generate md5sum.txt
 sudo /bin/bash -c "(find . -type f -print0 | xargs -0 md5sum | grep -v "\./md5sum.txt" > md5sum.txt)"
